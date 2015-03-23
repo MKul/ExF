@@ -4,8 +4,10 @@ norm = 1             #normalization of dt
 unit = "hours"       #["secs","mins","hours","days","weeks","auto"] - do not use "auto" 
 symdt = 0.1          #delay between ploting in second
 show = FALSE          #plot or not
-threshold = 0.01     #level at which 
-bins = 100
+threshold = exp(-62.5)     #level at which edge are deleted
+bins = seq(0,1,0.01)
+#bins = c(0,0.5,1)
+
 
 loadData <- function(dataset){
   if(dataset=="mails"){
@@ -79,8 +81,9 @@ runEvents <- function(tr, norm, unit, symdt, show, bins){
   lastEventTime = as.POSIXct(data[1,3])
   
   anCnPerEvent = matrix(c(0,0),ncol=2)
-  weightHist = matrix(ncol = bins)
+  weightHist = matrix(ncol = length(bins))
   
+  #for(i in 1:50){
   for(i in 1:nrow(data)){      
     #read next event    
     s = toString(data[i,1])
@@ -91,21 +94,28 @@ runEvents <- function(tr, norm, unit, symdt, show, bins){
     dt = as.numeric(difftime(t,lastEventTime, units=unit))
     lastEventTime = t    
     
+    #forgetting
+    tn <- recomputeWeights(tn, dt, norm, tr)
+    
     #add new link if not exist or set weight to 1 on existing link    
     if(tn[s,r]==0){
       tn <- tn + edge(s,r,weight=1.0, lt=0)
     }else{
-      tn[s,r] <- 0
+      tn[s,r] <- 1
       E(tn,P=c(s,r))$lt <- 0
     }
-    
-    #forgetting
-    tn <- recomputeWeights(tn, dt, norm, tr)
     
     #count active nodes and components
     an_cn <- countActiveNodes(tn)
     #count weights and prepare histogram
     h <- countWeights(tn,bins)
+    
+    #####
+    #if(i==17){
+    #  print(E(tn)$weight)
+    #  srow <- E(tn)$weight
+    #}
+    #####
     
     weightHist <- rbind(weightHist,h)
     anCnPerEvent <- rbind(anCnPerEvent,an_cn)
@@ -129,9 +139,28 @@ runEvents <- function(tr, norm, unit, symdt, show, bins){
   }
   
   close(pb)
-  return(c(tn,anCnPerEvent,weightHist))
+  results <- vector(mode = "list", length = 3)
+  names(results) <- c("tn","an","wh")
+  results[[1]]=tn
+  results[[2]]=anCnPerEvent
+  results[[3]]=weightHist
+  return(results)
 }
 
 #data <- loadData(dataset)
-#tn <- findAllNodes(data)
-results <- runEvents(threshold, norm, unit, symdt, show, bins)
+tn <- findAllNodes(data)
+
+threshold = exp(-80)
+results1 <- runEvents(threshold, norm, unit, symdt, show, bins)
+threshold = exp(-168)
+results2 <- runEvents(threshold, norm, unit, symdt, show, bins)
+threshold = exp(-720)
+results3 <- runEvents(threshold, norm, unit, symdt, show, bins)
+
+#an_cp <- results[["an"]]
+#an <- an_cp[,1]
+#cp <- an_cp[,2]
+#dim(an) <- c(82928,1)
+#dim(cp) <- c(82928,1)
+#plot(an2,type='l',xlab='step',ylab='active nodes')
+#plot(cp2,type='l',xlab='step',ylab='components')
