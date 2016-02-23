@@ -2,7 +2,8 @@ library(foreach)
 library(doParallel)
 library(igraph)
 
-registerDoParallel(cores=64)
+#registerDoParallel(cores=64)
+registerDoParallel(cores=8)
 
 #parameters
 dataset = "mails"         #['mails',...]
@@ -17,11 +18,14 @@ infect_start_step = 1000  #event number when infection starts
 gamma = 1                 #exponential distribution parameter
 critical_level = 0.5      #critical level of infected network (stop condition)
 limit = 20000		  #number of event taking to account - simulation on all events have to high cost
-
+#source_dir = "/home/grid/users/plgmkul/ms/"
+source_dir = "d:/codes_R/ExF/"
+#results_dir = "/home/grid/users/plgmkul/ms/res/"
+results_dir = "d:/epid_sym_man/"
 
 loadData <- function(dataset){
   if(dataset=="mails"){
-    data = read.csv2("/home/grid/users/plgmkul/ms/manufacturing.csv")
+    data = read.csv2(paste(source_dir,"manufacturing.csv",sep=""))
     return(data)
   }
 }
@@ -47,7 +51,7 @@ findAllNodes <- function(data){
 
 recomputeWeights <- function(n, dt, norm, tr){
   todelete <- list()
-  for(edge in E(n)){
+  foreach(edge=E(n))%dopar%{
     nlt <- E(n)[edge]$lt + (dt/norm)
     nw <- exp(-nlt)
     E(n)[edge]$weight <- nw
@@ -84,14 +88,14 @@ countActiveNodes <- function (n){
 }
 
 runEvents <- function(tr, norm, unit, symdt, show, bins){
-  pb = tkProgressBar("Progress","%",1,nrow(data))
   lastEventTime = as.POSIXct(data[1,3])
   
   anCnPerEvent = matrix(c(0,0),ncol=2)
   weightHist = matrix(ncol = length(bins))
   
   #for(i in 1:50){
-  for(i in 1:nrow(data)){      
+  for(i in 1:nrow(data)){   
+    print(i)
     #read next event    
     s = toString(data[i,1])
     r = toString(data[i,2])
@@ -117,27 +121,8 @@ runEvents <- function(tr, norm, unit, symdt, show, bins){
     #count weights and prepare histogram
     h <- countWeights(tn,bins)
     
-    #####
-    #if(i==17){
-    #  print(E(tn)$weight)
-    #  srow <- E(tn)$weight
-    #}
-    #####
-    
     weightHist <- rbind(weightHist,h)
     anCnPerEvent <- rbind(anCnPerEvent,an_cn)
-    
-    #an <- temp[1]
-    #cn <- temp[2]
-    #print(paste("# of active nodes:",toString(an)," # of components:",toString(cn),sep=""))
-    
-    info <- paste(toString(i),"/",toString(nrow(data))," done",sep="")
-    setTkProgressBar(pb,i, label=info)
-    #show network
-    if(show){
-      plot.igraph(tn, vertex.size=5, layout=layout.sphere(tn), edge.width=E(tn)$weight*10)
-    }
-    Sys.sleep(symdt)
     
   }
   
@@ -237,6 +222,8 @@ runInfection <- function(tr, norm, unit, symdt, show, bins,alpha,infect_start_st
               V(tn)[n]$infected = TRUE
               infected = infected + 1
               
+              #TODO: IF node already in network compute ExF - E
+              
               #progressbar
               #info <- paste(toString(ip)," infection done",sep="")
               #setTkProgressBar(ib,ip,label=info)
@@ -326,7 +313,7 @@ runInfection <- function(tr, norm, unit, symdt, show, bins,alpha,infect_start_st
           results[[8]]=n_IS
           print(inf_distr)
           out_results <- rbind(out_results,results)
-          path = paste("/home/grid/users/plgmkul/ms/res/1epid_full_sym_",toString(n),"_",toString(iter),"_",toString(step),sep="")
+          path = paste(results_dir,"1epid_full_sym_",toString(n),"_",toString(iter),"_",toString(step),sep="")
           save(out_results,file=path)
         }
       }, error = function(e){
@@ -340,8 +327,10 @@ runInfection <- function(tr, norm, unit, symdt, show, bins,alpha,infect_start_st
 }
 
 
-data = loadData(dataset)
-tn = findAllNodes(data)
+#data = loadData(dataset)[1:10000,]
+#tn = findAllNodes(data)
 
-alpha = 60*60*24
-runInfection(threshold, norm, unit, symdt, show, bins, alpha, infect_start_step, gamma, critical_level)
+#alpha = 60*60*24
+#runInfection(threshold, norm, unit, symdt, show, bins, alpha, infect_start_step, gamma, critical_level)
+
+out <- runEvents(threshold,norm,unit,symdt,show,bins)

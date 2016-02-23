@@ -1,11 +1,11 @@
 #parameters
-dataset = "mails"    #['mails','mobility'...]
+dataset = "mobility"    #['mails','mobility'...]
 norm = 1             #normalization of dt
-unit = "hours"       #["secs","mins","hours","days","weeks","auto"] - do not use "auto" 
+unit = "min"       #["secs","mins","hours","days","weeks","auto"] - do not use "auto" 
 symdt = 0         #delay between ploting in second
 show = FALSE          #plot or not
 show_progress = FALSE 
-threshold = exp(-62.5)     #level at which edge are deleted
+threshold = exp(-30)     #level at which edge are deleted
 bins = seq(0,1,0.01)
 #bins = c(0,0.5,1)
 
@@ -25,6 +25,7 @@ loadData <- function(dataset){
 findAllNodes <- function(data){
   tn <- graph.empty(directed=FALSE)
   for(i in 1:nrow(data)){
+    print(i)
     s = toString(data[i,1])
     r = toString(data[i,2])
     #add new nodes if not exist
@@ -90,7 +91,7 @@ runEvents <- function(tr, norm, unit, symdt, show, bins){
   trans = c()
   
   #for(i in 1:2000){
-  for(i in 1:nrow(data)){      
+  for(i in 1:nrow(data)){    
     #read next event    
     s = toString(data[i,1])
     r = toString(data[i,2])

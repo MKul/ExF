@@ -50,3 +50,9 @@ for(i in (1:length(an))){
 
 
 
+test1 <- function(a,b){
+  c<-a+b
+  return
+}
+
+test1(1,2)
