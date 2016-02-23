@@ -1,7 +1,16 @@
+<<<<<<< HEAD
 #parameters
 dataset = "mobility"    #['mails','mobility'...]
 norm = 1             #normalization of dt
 unit = "mins"       #["secs","mins","hours","days","weeks","auto"] - do not use "auto" 
+=======
+#sink("/root/ms/epid_sym/out.txt")
+
+#parameters
+dataset = "mobility"    #['mails','mobility'...]
+norm = 1             #normalization of dt
+unit = "hours"       #["secs","mins","hours","days","weeks","auto"] - do not use "auto" 
+>>>>>>> 44e0d2295128969ecbef8158d26440274d3fb52f
 symdt = 0         #delay between ploting in second
 show = FALSE          #plot or not
 show_progress = FALSE 
@@ -14,15 +23,22 @@ gamma = 1
 limit = 27000
 args <- commandArgs(trailingOnly = TRUE)
 node = strtoi(args[1])
+<<<<<<< HEAD
 res_dir <- "/home/mkul/ms/res_mob_epid_a30/"
 res_files_name <- "epid_full_sym_mob_"
+=======
+>>>>>>> 44e0d2295128969ecbef8158d26440274d3fb52f
 #bins = c(0,0.5,1)
 
 library(igraph)
 library(doParallel)
 
 registerDoParallel(cores=24)
+<<<<<<< HEAD
 print("Running... on node ",node)
+=======
+print("Running...")
+>>>>>>> 44e0d2295128969ecbef8158d26440274d3fb52f
 
 loadData <- function(dataset){
   if(dataset=="mails"){
@@ -110,14 +126,24 @@ countActiveNodes <- function (n){
 }
 
 runEvents <- function(tr, norm, unit, symdt, show, bins){
+<<<<<<< HEAD
   
+=======
+  #if(show_progress){
+  #  pb = tkProgressBar("Progress","%",1,nrow(data))
+  #}
+>>>>>>> 44e0d2295128969ecbef8158d26440274d3fb52f
   lastEventTime = as.POSIXct(data[1,3])
   
   anCnPerEvent = matrix(c(0,0),ncol=2)
   weightHist = matrix(ncol = length(bins))
   trans = c()
   of = nrow(data)
+<<<<<<< HEAD
 
+=======
+  #for(i in 1:2000){
+>>>>>>> 44e0d2295128969ecbef8158d26440274d3fb52f
   for(i in 1:nrow(data)){      
     #read next event
     # print(paste(i,"of",of))
@@ -338,7 +364,10 @@ runInfection <- function(tr, norm, unit, symdt, show, bins,alpha,infect_start_st
           }
         },error = function(e){
           print(paste("Error on event:",i,"s:",sender,"r",reciever))
+<<<<<<< HEAD
           print(e)
+=======
+>>>>>>> 44e0d2295128969ecbef8158d26440274d3fb52f
         })
       }
       #saving results
@@ -354,7 +383,11 @@ runInfection <- function(tr, norm, unit, symdt, show, bins,alpha,infect_start_st
       results[[8]]=n_IS
       
       results_mob_a30 <- rbind(results_mob_a30,results)
+<<<<<<< HEAD
       path = paste(res_dir,res_files_name,toString(n),"_",toString(iter),"_",toString(step),sep="")
+=======
+      path = paste("/home/mkul/ms/res_mob_epid_a30/epid_full_sym_mob_",toString(n),"_",toString(iter),"_",toString(step),sep="")
+>>>>>>> 44e0d2295128969ecbef8158d26440274d3fb52f
       save(results_mob_a30,file=path)
       results_mob_a30 = matrix(ncol=8)
     }
@@ -374,3 +407,7 @@ tryCatch({
   print(e)
   traceback()
 })
+<<<<<<< HEAD
+=======
+
+>>>>>>> 44e0d2295128969ecbef8158d26440274d3fb52f
